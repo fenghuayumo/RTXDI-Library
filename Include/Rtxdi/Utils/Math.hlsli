@@ -297,4 +297,52 @@ float3 RTXDI_DecodeLogLuvToRGB(uint packedColor)
     return max(RTXDI_XYZToRGBInRec709(XYZ), 0.0);
 }
 
+void SetBit(inout uint bitField, uint bitIndex, bool value)
+{
+    bitField &= ~(1u << bitIndex);
+    bitField |= ((value ? 1u : 0u) << bitIndex);
+}
+
+bool GetBit(uint bitField, uint bitIndex)
+{
+    return ((bitField >> bitIndex) & 1u) != 0;
+}
+
+float RTXDI_CalculatePartialJacobian(const float distance, const float3 rayDir, const float3 sampleNormal)
+{
+    const float cosine = abs(dot(rayDir, sampleNormal));
+    return cosine <= 0.0f ? 0.0f : (distance * distance) / cosine;
+}
+
+void RTXDI_CalculatePartialJacobianFromPoints(
+    const float3 receiverPos,
+    const float3 samplePos,
+    const float3 sampleNormal,
+    out float distance,
+    out float cosine)
+{
+    float3 sampleDir = samplePos - receiverPos;
+    distance = length(sampleDir);
+    sampleDir = distance <= 0.0f ? float3(0.0f, 0.0f, 0.0f) : (sampleDir / distance);
+    cosine = abs(dot(sampleDir, sampleNormal));
+}
+
+float RTXDI_CalculateJacobian(
+    float3 receiverPos,
+    float3 neighborReceiverPos,
+    float3 samplePos,
+    float3 sampleNormal)
+{
+    float originalDistance, originalCosine;
+    RTXDI_CalculatePartialJacobianFromPoints(neighborReceiverPos, samplePos, sampleNormal, originalDistance, originalCosine);
+
+    float newDistance, newCosine;
+    RTXDI_CalculatePartialJacobianFromPoints(receiverPos, samplePos, sampleNormal, newDistance, newCosine);
+
+    if (newCosine <= 0.0f || originalDistance <= 0.0f)
+        return 0.0f;
+
+    return (originalCosine * newDistance * newDistance) / (newCosine * originalDistance * originalDistance);
+}
+
 #endif // RTXDI_MATH_HLSLI

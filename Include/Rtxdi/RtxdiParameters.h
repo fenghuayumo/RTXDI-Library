@@ -49,6 +49,19 @@
 #define RTXDI_ENABLE_PRESAMPLING 1
 #endif
 
+#ifndef RTXDI_DEBUG
+#define RTXDI_DEBUG 0
+#endif
+
+#define RTXDI_RESTIRPT_RECONNECTION_MODE_FIXED_THRESHOLD 0
+#define RTXDI_RESTIRPT_RECONNECTION_MODE_FOOTPRINT 1
+
+#ifndef RTXDI_TILE_SIZE_IN_PIXELS
+#define RTXDI_TILE_SIZE_IN_PIXELS 16
+#endif
+
+#define RTXDI_MAX_FLOAT32 3.402823466e+38F
+
 #define RTXDI_INVALID_LIGHT_INDEX (0xffffffffu)
 
 #ifndef __cplusplus
@@ -93,6 +106,14 @@ struct RTXDI_ReservoirBufferParameters
 {
     uint32_t reservoirBlockRowPitch;
     uint32_t reservoirArrayPitch;
+    uint32_t pad1;
+    uint32_t pad2;
+};
+
+struct RTXDI_BoilingFilterParameters
+{
+    uint32_t enableBoilingFilter;
+    float boilingFilterStrength;
     uint32_t pad1;
     uint32_t pad2;
 };
